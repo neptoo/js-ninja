@@ -1,4 +1,4 @@
-# <center>JavaScript忍者秘籍</center>
+# <h1 align="center">JavaScript忍者秘籍</h1>
 ##  简介
 本文参考John Resig和Bear Bibeault的《JavaScript忍者秘籍》，是为方便未来学习和查阅JavaScript而创建的代码笔记。
 ## 目录
@@ -38,7 +38,7 @@ function log(){
 </style>
 <div id="test"></div>
 ```
-- 测试框架：QUnit | YUI Test |JSUnit
+- 测试框架：QUnit | YUI Test | JSUnit
 - Javascript assert()的简单实现
 ```html
 <html>
@@ -108,7 +108,76 @@ function log(){
 			});
 		};
 	</script>
+	<style>
+		#result li.pass { color: green;}
+		#result li.fail { color: red;}
+	</style>
+</head>
+<body>
+	<ul id="results"></ul>
+</body>
+</html>
+```
+- 异步测试
+```html
+<html>
+<head>
+	<title>Test Suite</title>
+	<script>
+		(function(){
+			var quenue=[],paused=false, results;
+			this.test=function(name, fn){
+				quenue.push(function(){
+					results=document.getElementById("results");
+					results=assert(true,name).appendChild(document.createElement("ul"));
+					fn();
+				});
+				runTest();
+			};
+			this.pause=function(){
+				paused=true;
+			};
+			this.resume=function(){
+				paused=false;
+				setTimeOut(runTest,1);
+			};
+			function runTest(){
+				if(!paused && quenue.length){
+					quenue.shift()();
+					if(!paused){
+						resume();
+					}
+				}
+			}
 
+			this.assert=function assert(value,desc){
+				var li=document.createElement("li");
+				li.className=value ? "pass":"fail";
+				li.appendChild(document.craeteTextNode(desc));
+				results.appendChild(li);
+				if(!value){
+					li.parentNode.parentNode.className="fail";
+				}
+				return li;
+			};
+		})();
+		window.onload=function(){
+			test("Async Test #1",function(){
+				pause();
+				setTimeOut(function(){
+					assert(true,"First test completed");
+					resume();
+				},1000);
+			});
+			test("Async Test #2",function(){
+				pause();
+				setTimeOut(function(){
+					assert(true,"Second test completed");
+					resume();
+				},1000);
+			});
+		};
+	</script>
 	<style>
 		#result li.pass { color: green;}
 		#result li.fail { color: red;}

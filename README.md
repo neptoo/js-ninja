@@ -188,10 +188,95 @@ function log(){
 </body>
 </html>
 ```
+
 **[返回目录](#目录)**
 
 ---
 ## 2. 函数
+- 使用断言测试函数声明
+```html
+<script type="text/javascript">
+	// 声明一个命名函数
+	function isNimble(){ return true; }
+	assert(typeof window.isNimble==="function","isNimble() defined");
+	assert(typeof isNimble.name==="isNimble","isNimble() has a name");
+
+	// 创建匿名函数，并赋值给变量
+	var canFly=function(){ return true; };
+	assert(typeof window.canFly==="function","canFly() defined");
+	assert(canFly.name="","canFly() has no name");
+
+	// 创建匿名函数，并引用到window的一个属性上
+	window.isDeadly=function(){ return true; };
+	assert(typeof window.isDeadly==="function","isDeadly() defined");
+
+	function outer(){
+		assert(typeof inner==="function","inner() in scope before declaration");
+		function inner(){}
+		assert(typeof inner==="function","inner() in scope after declaration");
+		assert(window.inner===undefined,"inner() not in global scope");
+	}
+	// outer()可以在全局作用域访问到，inner()不行
+	outer();
+	assert(window.inner===undefined,"inner() still not in global scope");
+
+	// 真正起控制作用的是该函数的真正的字面量名称
+	window.wieldSword=function swingSword(){return true;};
+	assert(window.wieldSword.name==='swingSword',"wieldSword's real name is swingSword");
+</script>
+```
+- 作为函数调用与作为方法调用
+```html
+<script type="text/javascript">
+	function creep(){ return this; }
+	// 作为函数进行调用并验证该函数上下文是全局作用域
+	assert(creep()===window,"creeping in window");
+
+	var sneak=creep;
+	// 使用sneak变量调用函数
+	assert(sneak()===window,"sneaking in window");
+
+	var ninja={
+		skulk:creep
+	};
+	// 通过skulk属性调用，creep()作为ninja的一个方法进行调用
+	assert(ninja.skulk()===ninja,"The 1st ninja is skulking");
+</script>
+```
+- 使用构造器进行调用
+创建一个名为Ninja()的函数，该函数将设置ninja的skulk技能，用于构建ninjas。
+```html
+<script type="text/javascript">
+	funtion Ninja(){
+		this.skulk=function(){ return this; };
+	}
+	var ninja1=new Ninja();
+	var ninja2=new Ninja();
+
+	assert(ninja1.skulk()===ninja1,"The 1st ninja is skulking");
+	assert(ninja2.skulk()===ninja2,"The 2nd ninja is skulking");
+</script>
+```
+**作为方法进行调用，该上下文是方法的拥有者；作为全局函数进行调用，上下文永远是window，作为构造器进行调用，其上下文是新创建的对象实例。在函数调用时，JavaScript提供了apply()和call()方法，可以显示指定任何一个对象为其函数的上下文。**
+- 使用apply()和call()方法指定函数上下文
+```html
+<script type="text/javascript">
+	function juggle(){
+		var result=0;
+		for(var n = 0; n <arguments.length; n++){
+			result += arguments[n];
+		}
+		this.result = result;
+	}
+	var ninja1={};
+	var ninja2={};
+	juggle.apply(ninja1,[1,2,3,4]);
+	juggle.call(ninja2,5,6,7,8);
+	assert(ninja1.result===10,"juggled via apply");
+	assert(ninja2.result===26,"juggled via call");
+</script>
+```
+call()和apply()功能基本相同。如果在变量里有很多无关的值或者是指定为字面量，使用call()方法可以直接将其作为参数列表传进去。但是如果这些参数，已经在一个数组里，或者容易收集到数组里，apply()是更好的选择。
 
 **[返回目录](#目录)**
 

@@ -4,6 +4,7 @@
 ## 目录
 1. **[调试](#1-调试)**
 2. **[函数](#2-函数)**
+3. **[函数(二)](#3-函数(二))**
 ---
 ## 1. 调试
 - 用于所有现代浏览器的日志记录
@@ -278,6 +279,81 @@ function log(){
 ```
 call()和apply()功能基本相同。如果在变量里有很多无关的值或者是指定为字面量，使用call()方法可以直接将其作为参数列表传进去。但是如果这些参数，已经在一个数组里，或者容易收集到数组里，apply()是更好的选择。
 
+**[返回目录](#目录)**
+
+---
+## 3. 函数(二)
+- 使用匿名函数的示例
+```html
+<script type="text/javascript">
+  // 为load事件创建一个匿名函数作为事件处理程序
+  window.onload = function() {
+    assert(true, 'power!');
+  };
+  // 将其作为ninja的一个方法，使用shout属性调用
+  var ninja = {
+    shout: function() {
+      assert(true, "Ninja");
+    }
+  };
+  ninja.shout();
+  // 作为参数传递给window对象的setTimeOut()函数
+  setTimeOut(function() {
+    assert(true, 'Forever!');
+  }, 500);
+</script>
+```
+- 使用内联函数进行递归
+```html
+<script type="text/javascript">
+  var ninja = {
+    // 定义内联函数signal 在函数体内使用名称进行递归调用
+    chrip: function signal(n) {
+      return n > 1 ? signal(n - 1) + "-chrip" : "chrip";
+    }
+  };
+  // signal作为ninja对象的方法调用正常
+  assert(ninja.chrip(3) == "chrip-chrip-chrip", "Works as we would expect!");
+  // 将函数的引用复制给samurai
+  var samurai = {
+    chrip: ninja.chrip
+  };
+  // 清空ninja对象
+  ninja = {};
+  // 清除ninja的chrip属性 不影响内联函数用名字进行递归调用
+  assert(samurai.chrip(3) == "chrip-chrip-chrip", "The method correctly calls itself.");
+</script>
+```
+- 缓存记忆计算过的结果
+```html
+<script type="text/javascript">
+  function isPrime(value) {
+  	// 创建缓存
+    if (!isPrime.answers) isPrime.answers = {};
+    if (isPrime.answers[value] != null) {
+      return isPrime.answers[value];
+    }
+    var prime = value != 1;
+    for (var i = 2; i < value; i++) {
+      if (value % i == 0) {
+        prime = false;
+        break;
+      }
+    }
+    // 没有缓存，判断该值是否为素数，将结果缓存
+    return isPrime.answers[value] = prime;
+  }
+  assert(isPrime(5), "5 is prime!");
+  assert(isPrime.answers[5], "The answer was cached!");
+</script>
+```
+- 缓存DOM元素
+```javascript
+function getElements(name) { 
+	if(!getElements.cache) getElements.cache={}; 
+	return getElements.cache[name]=getElements.cache[name] || document.getElementsByTagName(name);
+}
+```
 **[返回目录](#目录)**
 
 ---

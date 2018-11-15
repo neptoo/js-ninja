@@ -394,7 +394,7 @@ function getElements(name) {
     assert(merged.city == "Nihama", "And the city has been copied over.");
     </script>
 ```
-- 对arguments列表且切片
+- 对arguments列表进行切片
 ```html
 <script type="text/javascript">
     function multiMax(multi) {
@@ -452,10 +452,7 @@ function getElements(name) {
     </script>
 ```
 - 函数判断
-如何判断一个给定对象是一个函数的实例，并且是可调用的。通常typeof语句就可以满足要求。但也有跨浏览器的问题：
-Firefox--在html的<object>元素上使用typeof，会返回function而不是object。
-IE--IE会将DOM元素的方法报告成object,如typeof domNode.getAttribute=="object"等。
-Safari--Safari认为DOM的NodeList是一个function。所以typeof childNodes=="function"。
+如何判断一个给定对象是一个函数的实例，并且是可调用的。通常typeof语句就可以满足要求。但也有跨浏览器的问题：Firefox--在html的<object>元素上使用typeof，会返回function而不是object；IE--IE会将DOM元素的方法报告成object,如typeof domNode.getAttribute=="object"等；Safari--Safari认为DOM的NodeList是一个function。所以typeof childNodes=="function"。
 
 **[返回目录](#目录)**
 

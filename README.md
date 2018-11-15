@@ -4,38 +4,40 @@
 ## 目录
 1. **[调试](#1-调试)**
 2. **[函数](#2-函数)**
-3. **[函数(二)](#3-函数(二))**
+3. **[函数续](#3-函数续)**
 ---
 ## 1. 调试
 - 用于所有现代浏览器的日志记录
 ```javascript
-function log(){
-	try{
-		console.log.apply(console,arguments);
-		// 用console.log记录日志信息
-	}
-	catch(e){
-		try{
-			opera.postError.apply(opera,arguments);
-			// 捕获失败，尝试过时版本的opera的专有方法记录
-		}
-		catch(e){
-			alert(Arrary.prototype.join.call(arguments," "));
-			// 如果都不行 使用alert()函数
-		}
-	}
+function log() {
+    try {
+        console.log.apply(console, arguments);
+        // 用console.log记录日志信息
+    } catch (e) {
+        try {
+            opera.postError.apply(opera, arguments);
+            // 捕获失败，尝试过时版本的opera的专有方法记录
+        } catch (e) {
+            alert(Arrary.prototype.join.call(arguments, " "));
+            // 如果都不行 使用alert()函数
+        }
+    }
 }
 ```
 - 用于测试jQuery的DOM测试用例
 ```html
 <script src="dist/jquery.js"></script>
 <script>
-  $(document).ready(function(){
-  	$("#test").append("test");
-  });
+$(document).ready(function() {
+    $("#test").append("test");
+});
 </script>
 <style>
-  #test{ width:100px; height:100px; background:red; }
+#test {
+    width: 100px;
+    height: 100px;
+    background: red;
+}
 </style>
 <div id="test"></div>
 ```
@@ -44,149 +46,172 @@ function log(){
 ```html
 <html>
 <head>
-	<title>Test Suite</title>
-	<script>
-		function assert(value,desc){
-			var li = document.createElement("li");
-			li.className = value ? "pass":"fail";
-			li.appendChild(document.craeteTextNode(desc));
-			document.getElementById("results").appendChild(li);
-		}
-		window.onload=function(){
-			assert(true, "The test suite is running.");
-			assert(false, "Fail!");
-		};
-	</script>
-	<style>
-		#result li.pass { color: green;}
-		#result li.fail { color: red;}
-	</style>
+    <title>Test Suite</title>
+    <script>
+    function assert(value, desc) {
+        var li = document.createElement("li");
+        li.className = value ? "pass" : "fail";
+        li.appendChild(document.craeteTextNode(desc));
+        document.getElementById("results").appendChild(li);
+    }
+    window.onload = function() {
+        assert(true, "The test suite is running.");
+        assert(false, "Fail!");
+    };
+    </script>
+    <style>
+    #result li.pass {
+        color: green;
+    }
+    #result li.fail {
+        color: red;
+    }
+    </style>
 </head>
 <body>
-	<ul id="results"></ul>
+    <ul id="results"></ul>
 </body>
 </html>
 ```
 - 测试分组
 ```html
 <html>
+
 <head>
-	<title>Test Suite</title>
-	<script>
-		(function(){
-			var results;
-			this.assert=function assert(value,desc){
-				var li = document.createElement("li");
-				li.className = value ? "pass":"fail";
-				li.appendChild(document.craeteTextNode(desc));
-				document.getElementById("results").appendChild(li);
-				if(!value){
-					li.parentNode.parentNode.className="fail";
-				}
-				return li;
-			};
-			this.test=function test(name,fn){
-				results=document.getElementById("results");
-				results=assert(true,name).appendChild(document.createElement("ul"));
-				fn();
-			};
-		})();
-		
-		window.onload=function(){
-			test("A test.",function(){
-				assert(true,"First assertion completed");
-				assert(true,"Second assertion completed");
-				assert(true,"Third assertion completed");
-			});
-			test("Another test.",function(){
-				assert(true,"First assertion completed");
-				assert(false,"Second test failed");
-				assert(true,"Third assertion completed");
-			});
-			test("A third test.",function(){
-				assert(null,"fail");
-				assert(5,"pass");
-			});
-		};
-	</script>
-	<style>
-		#result li.pass { color: green;}
-		#result li.fail { color: red;}
-	</style>
+    <title>Test Suite</title>
+    <script>
+    (function() {
+        var results;
+        this.assert = function assert(value, desc) {
+            var li = document.createElement("li");
+            li.className = value ? "pass" : "fail";
+            li.appendChild(document.craeteTextNode(desc));
+            document.getElementById("results").appendChild(li);
+            if (!value) {
+                li.parentNode.parentNode.className = "fail";
+            }
+            return li;
+        };
+        this.test = function test(name, fn) {
+            results = document.getElementById("results");
+            results = assert(true, name).appendChild(document.createElement("ul"));
+            fn();
+        };
+    })();
+
+    window.onload = function() {
+        test("A test.", function() {
+            assert(true, "First assertion completed");
+            assert(true, "Second assertion completed");
+            assert(true, "Third assertion completed");
+        });
+        test("Another test.", function() {
+            assert(true, "First assertion completed");
+            assert(false, "Second test failed");
+            assert(true, "Third assertion completed");
+        });
+        test("A third test.", function() {
+            assert(null, "fail");
+            assert(5, "pass");
+        });
+    };
+    </script>
+    <style>
+    #result li.pass {
+        color: green;
+    }
+
+    #result li.fail {
+        color: red;
+    }
+    </style>
 </head>
+
 <body>
-	<ul id="results"></ul>
+    <ul id="results"></ul>
 </body>
+
 </html>
 ```
 - 异步测试
 ```html
 <html>
-<head>
-	<title>Test Suite</title>
-	<script>
-		(function(){
-			var quenue=[],paused=false, results;
-			this.test=function(name, fn){
-				quenue.push(function(){
-					results=document.getElementById("results");
-					results=assert(true,name).appendChild(document.createElement("ul"));
-					fn();
-				});
-				runTest();
-			};
-			this.pause=function(){
-				paused=true;
-			};
-			this.resume=function(){
-				paused=false;
-				setTimeOut(runTest,1);
-			};
-			function runTest(){
-				if(!paused && quenue.length){
-					quenue.shift()();
-					if(!paused){
-						resume();
-					}
-				}
-			}
 
-			this.assert=function assert(value,desc){
-				var li=document.createElement("li");
-				li.className=value ? "pass":"fail";
-				li.appendChild(document.craeteTextNode(desc));
-				results.appendChild(li);
-				if(!value){
-					li.parentNode.parentNode.className="fail";
-				}
-				return li;
-			};
-		})();
-		window.onload=function(){
-			test("Async Test #1",function(){
-				pause();
-				setTimeOut(function(){
-					assert(true,"First test completed");
-					resume();
-				},1000);
-			});
-			test("Async Test #2",function(){
-				pause();
-				setTimeOut(function(){
-					assert(true,"Second test completed");
-					resume();
-				},1000);
-			});
-		};
-	</script>
-	<style>
-		#result li.pass { color: green;}
-		#result li.fail { color: red;}
-	</style>
+<head>
+    <title>Test Suite</title>
+    <script>
+    (function() {
+        var quenue = [],
+            paused = false,
+            results;
+        this.test = function(name, fn) {
+            quenue.push(function() {
+                results = document.getElementById("results");
+                results = assert(true, name).appendChild(document.createElement("ul"));
+                fn();
+            });
+            runTest();
+        };
+        this.pause = function() {
+            paused = true;
+        };
+        this.resume = function() {
+            paused = false;
+            setTimeOut(runTest, 1);
+        };
+
+        function runTest() {
+            if (!paused && quenue.length) {
+                quenue.shift()();
+                if (!paused) {
+                    resume();
+                }
+            }
+        }
+
+        this.assert = function assert(value, desc) {
+            var li = document.createElement("li");
+            li.className = value ? "pass" : "fail";
+            li.appendChild(document.craeteTextNode(desc));
+            results.appendChild(li);
+            if (!value) {
+                li.parentNode.parentNode.className = "fail";
+            }
+            return li;
+        };
+    })();
+    window.onload = function() {
+        test("Async Test #1", function() {
+            pause();
+            setTimeOut(function() {
+                assert(true, "First test completed");
+                resume();
+            }, 1000);
+        });
+        test("Async Test #2", function() {
+            pause();
+            setTimeOut(function() {
+                assert(true, "Second test completed");
+                resume();
+            }, 1000);
+        });
+    };
+    </script>
+    <style>
+    #result li.pass {
+        color: green;
+    }
+
+    #result li.fail {
+        color: red;
+    }
+    </style>
 </head>
+
 <body>
-	<ul id="results"></ul>
+  <ul id="results"></ul>
 </body>
+
 </html>
 ```
 
@@ -196,85 +221,83 @@ function log(){
 ## 2. 函数
 - 使用断言测试函数声明
 ```html
-<script type="text/javascript">
-	// 声明一个命名函数
-	function isNimble(){ return true; }
-	assert(typeof window.isNimble==="function","isNimble() defined");
-	assert(typeof isNimble.name==="isNimble","isNimble() has a name");
+<script type = "text/javascript" >
+// 声明一个命名函数
+function isNimble() { return true; }
+assert(typeof window.isNimble === "function", "isNimble() defined");
+assert(typeof isNimble.name === "isNimble", "isNimble() has a name");
 
-	// 创建匿名函数，并赋值给变量
-	var canFly=function(){ return true; };
-	assert(typeof window.canFly==="function","canFly() defined");
-	assert(canFly.name="","canFly() has no name");
+// 创建匿名函数，并赋值给变量
+var canFly = function() { return true; };
+assert(typeof window.canFly === "function", "canFly() defined");
+assert(canFly.name = "", "canFly() has no name");
 
-	// 创建匿名函数，并引用到window的一个属性上
-	window.isDeadly=function(){ return true; };
-	assert(typeof window.isDeadly==="function","isDeadly() defined");
+// 创建匿名函数，并引用到window的一个属性上
+window.isDeadly = function() { return true; };
+assert(typeof window.isDeadly === "function", "isDeadly() defined");
 
-	function outer(){
-		assert(typeof inner==="function","inner() in scope before declaration");
-		function inner(){}
-		assert(typeof inner==="function","inner() in scope after declaration");
-		assert(window.inner===undefined,"inner() not in global scope");
-	}
-	// outer()可以在全局作用域访问到，inner()不行
-	outer();
-	assert(window.inner===undefined,"inner() still not in global scope");
+function outer() {
+    assert(typeof inner === "function", "inner() in scope before declaration");
 
-	// 真正起控制作用的是该函数的真正的字面量名称
-	window.wieldSword=function swingSword(){return true;};
-	assert(window.wieldSword.name==='swingSword',"wieldSword's real name is swingSword");
+    function inner() {}
+    assert(typeof inner === "function", "inner() in scope after declaration");
+    assert(window.inner === undefined, "inner() not in global scope");
+}
+// outer()可以在全局作用域访问到，inner()不行
+outer();
+assert(window.inner === undefined, "inner() still not in global scope");
+
+// 真正起控制作用的是该函数的真正的字面量名称
+window.wieldSword = function swingSword() { return true; };
+assert(window.wieldSword.name === 'swingSword', "wieldSword's real name is swingSword"); 
 </script>
 ```
 - 作为函数调用与作为方法调用
 ```html
 <script type="text/javascript">
-	function creep(){ return this; }
-	// 作为函数进行调用并验证该函数上下文是全局作用域
-	assert(creep()===window,"creeping in window");
-
-	var sneak=creep;
-	// 使用sneak变量调用函数
-	assert(sneak()===window,"sneaking in window");
-
-	var ninja={
-		skulk:creep
-	};
-	// 通过skulk属性调用，creep()作为ninja的一个方法进行调用
-	assert(ninja.skulk()===ninja,"The 1st ninja is skulking");
+function creep() { return this; }
+// 作为函数进行调用并验证该函数上下文是全局作用域
+assert(creep() === window, "creeping in window");
+var sneak = creep;
+// 使用sneak变量调用函数
+assert(sneak() === window, "sneaking in window");
+var ninja = {
+skulk: creep
+};
+// 通过skulk属性调用，creep()作为ninja的一个方法进行调用
+assert(ninja.skulk() === ninja, "The 1st ninja is skulking");
 </script>
 ```
 - 使用构造器进行调用
 创建一个名为Ninja()的函数，该函数将设置ninja的skulk技能，用于构建ninjas。
 ```html
 <script type="text/javascript">
-	funtion Ninja(){
-		this.skulk=function(){ return this; };
-	}
-	var ninja1=new Ninja();
-	var ninja2=new Ninja();
-
-	assert(ninja1.skulk()===ninja1,"The 1st ninja is skulking");
-	assert(ninja2.skulk()===ninja2,"The 2nd ninja is skulking");
+funtion Ninja() {
+    this.skulk = function() { return this; };
+}
+var ninja1 = new Ninja();
+var ninja2 = new Ninja();
+assert(ninja1.skulk() === ninja1, "The 1st ninja is skulking");
+assert(ninja2.skulk() === ninja2, "The 2nd ninja is skulking");
 </script>
 ```
 **作为方法进行调用，该上下文是方法的拥有者；作为全局函数进行调用，上下文永远是window，作为构造器进行调用，其上下文是新创建的对象实例。在函数调用时，JavaScript提供了apply()和call()方法，可以显示指定任何一个对象为其函数的上下文。**
 - 使用apply()和call()方法指定函数上下文
 ```html
 <script type="text/javascript">
-	function juggle(){
-		var result=0;
-		for(var n = 0; n <arguments.length; n++){
-			result += arguments[n];
-		}
-		this.result = result;
-	}
-	var ninja1={};
-	var ninja2={};
-	juggle.apply(ninja1,[1,2,3,4]);
-	juggle.call(ninja2,5,6,7,8);
-	assert(ninja1.result===10,"juggled via apply");
-	assert(ninja2.result===26,"juggled via call");
+  function juggle() {
+      var result = 0;
+      for (var n = 0; n < arguments.length; n++) {
+          result += arguments[n];
+      }
+      this.result = result;
+  }
+  var ninja1 = {};
+  var ninja2 = {};
+  juggle.apply(ninja1, [1, 2, 3, 4]);
+  juggle.call(ninja2, 5, 6, 7, 8);
+  assert(ninja1.result === 10, "juggled via apply");
+  assert(ninja2.result === 26, "juggled via call");
 </script>
 ```
 call()和apply()功能基本相同。如果在变量里有很多无关的值或者是指定为字面量，使用call()方法可以直接将其作为参数列表传进去。但是如果这些参数，已经在一个数组里，或者容易收集到数组里，apply()是更好的选择。
@@ -282,7 +305,7 @@ call()和apply()功能基本相同。如果在变量里有很多无关的值或�
 **[返回目录](#目录)**
 
 ---
-## 3. 函数(二)
+## 3. 函数续
 - 使用匿名函数的示例
 ```html
 <script type="text/javascript">
@@ -354,6 +377,86 @@ function getElements(name) {
 	return getElements.cache[name]=getElements.cache[name] || document.getElementsByTagName(name);
 }
 ```
+- 检测并遍历可变长度的参数列表
+```html
+<script type="text/javascript">
+    function merge(root) {
+        for (var i = 1; i < arguments.length; i++) {
+            for (var key in arguments[i]) {
+                root[key] = arguments[i][key];
+            }
+        }
+        return root;
+    }
+    // 调用merge()函数
+    var merged = merge({ name: "Batou" }, { city: "Nihama" });
+    assert(merged.name == "Batou", "The original name is intact.");
+    assert(merged.city == "Nihama", "And the city has been copied over.");
+    </script>
+```
+- 对arguments列表且切片
+```html
+<script type="text/javascript">
+    function multiMax(multi) {
+        return multi * Math.max.apply(Math, Array.prototype.slice.call(arguments, 1));
+        /* 如果是multi*Math.max.apply(Math,arguments.slice(1));会报错
+        因为arguments参数引用的不是真正的数组；Array.prototype.slice()这一原生JS数组方法，
+        通常是通过其函数上下文操作数组的，这里通过call()方法将我们的对象强制作为slice()方法的上下文*/
+        assert(multiMax(3, 1, 2, 3) == 9, "3*3=9 (第一个参数,剩余最大参数.)");
+    }
+    </script>
+```
+- 重载函数的方法及测试
+```html
+<script type="text/javascript">
+    function addMethod(object, name, fn) {
+        // 保存原有函数，因为调用的时候可能不匹配传入的参数个数
+        var old = object[name];
+        // 创建一个新匿名函数作为新方法
+        object[name] = function() {
+            // 若匿名函数的形参个数和实参个数匹配，调用该函数
+            if (fn.length == arguments.length)
+                return fn.apply(this, arguments)
+            // 若传入参数不匹配，调用原来的参数
+            else if (typeof old == 'function')
+                return old.apply(this, arguments);
+        };
+    }
+    var ninjas = {
+        values: ["Dave Edwards", "Sam Stephen", "Alex Russell"]
+    };
+    // 在基础对象上绑定一个无参数方法
+    addMethod(ninjas, "find", function() {
+        return this.values;
+    });
+    // 在基础对象上绑定一个单参数的方法
+    addMethod(ninjas, "find", function(name) {
+        var ret = [];
+        for (var i = 0; i < this.values.length; i++)
+            if (this.values[i].indexOf(name) == 0)
+                ret.push(this.values[i]);
+        return ret;
+    });
+    // 在基础对象上绑定两个参数的方法
+    addMethod(ninjas, "find", function(first, last) {
+        var ret = [];
+        for (var i = 0; i < this.values.length; i++)
+            if (this.values[i] == (first + " " + last))
+                ret.push(this.values[i]);
+        return ret;
+    });
+    assert(ninjas.find().length == 3, "Found all ninjas");
+    assert(ninjas.find("Sam").length == 1, "Found ninja by first name");
+    assert(ninjas.find("Dave", "Edwards").length == 1, "Found ninja by first and last name");
+    assert(ninjas.find("Alex", "Russell", "Jr") == null, "Found nothing");
+    </script>
+```
+- 函数判断
+如何判断一个给定对象是一个函数的实例，并且是可调用的。通常typeof语句就可以满足要求。但也有跨浏览器的问题：
+Firefox--在html的<object>元素上使用typeof，会返回function而不是object。
+IE--IE会将DOM元素的方法报告成object,如typeof domNode.getAttribute=="object"等。
+Safari--Safari认为DOM的NodeList是一个function。所以typeof childNodes=="function"。
+
 **[返回目录](#目录)**
 
 ---

@@ -5,6 +5,7 @@
 1. **[调试](#1-调试)**
 2. **[函数](#2-函数)**
 3. **[函数续](#3-函数续)**
+4. **[闭包](#4-闭包)**
 ---
 ## 1. 调试
 - 用于所有现代浏览器的日志记录
@@ -452,8 +453,164 @@ function getElements(name) {
     </script>
 ```
 - 函数判断
-如何判断一个给定对象是一个函数的实例，并且是可调用的。通常typeof语句就可以满足要求。但也有跨浏览器的问题：Firefox--在html的<object>元素上使用typeof，会返回function而不是object；IE--IE会将DOM元素的方法报告成object,如typeof domNode.getAttribute=="object"等；Safari--Safari认为DOM的NodeList是一个function。所以typeof childNodes=="function"。
+如何判断一个给定对象是一个函数的实例，并且是可调用的。通常typeof语句就可以满足要求。但也有跨浏览器的问题：Firefox--在html的object元素上使用typeof，会返回function而不是object；IE--IE会将DOM元素的方法报告成object,如typeof domNode.getAttribute=="object"等；Safari--Safari认为DOM的NodeList是一个function。所以typeof childNodes=="function"。
 
 **[返回目录](#目录)**
 
+---
+## 4. 闭包
+- 不那么简单的闭包
+
+```html
+<script type="text/javascript">
+var outValue = 'ninja';
+var later;
+function outerFunction() {
+    var innerValue = 'samurai';
+    function innerFunction(paramValue) {
+        assert(outerValue, "Inner can see the ninja.");
+        assert(innerValue, "Inner can see the samurai.");
+        assert(paramValue, "Inner can see the wakiz.");
+        assert(tooLate, "Inner can see the ronin.");
+    }
+    later = innerFunction;
+}
+assert(!tooLate, "Outer can't see the ronin.");
+var tooLate = 'ronin';
+outerFunction();
+later('wakiz');
+</script>
+```
+内部闭包可以访问到tooLate，而外部闭包不能，因为：作用域之外的所有变量，即便是函数声明之后的那些声明，也都包含在闭包中；相同的作用域内，尚未声明的变量不能进行提前引用。
+- 使用闭包封装一些信息作为"私有变量"
+```html
+<script type="text/javascript">
+function Ninja() {
+    // 在函数(构造器)内部声明一个私有变量
+    var feints = 0;
+    // 创建一个访问feints计数的方法，该变量在构造器内部无法被访问，只能读取
+    this.getFeints = function() {
+        return feints;
+    };
+    this.feint = function() {
+        feints++;
+    };
+}
+var ninja = new Ninja();
+ninja.feint();
+// 验证我们不能直接获取该变量值
+assert(ninja.getFeints() == 1, "We're able to access the internal feint count.");
+// 我们可以操作feints的值，因为即便构造器执行完且没有作用域了，feints变量还是会绑定在feint()方法声明创建的闭包上，并且可以在feint()方法内使用
+assert(ninja.feints === undefined, "And the private data is inaccessible to us.");
+</script>
+```
+- 在ajax请求的callback里使用闭包
+```html
+<div id="testSubject"></div>
+<button type="button" id="testButton">Go!</button>
+<script type="text/javascript">
+  jQuery('#testButton').click(function(){
+    var elem$ = jQuery("#testSubject");
+    elem$.html("Loading...");
+    jQuery.ajax({
+      url("test.html"),
+      success: function(html){
+        // 定义一个匿名函数作为响应回调，在回调中通过闭包引用了elem$变量，使用该变量将响应文本填充到div元素中
+        assert(elem$,"We can see elem$, via the closure for this callback.");
+        elem$.html(html);
+      }
+    });
+  });
+</script>
+```
+- 计时器中使用闭包
+```html
+<div id="box">Some text</div>
+<script type="text/javascript">
+  function animateIt(elementId){
+    var elem = document.getElementById(elementId);
+    var tick = 0;
+    var timer = setInterval(function(){
+      if(tick < 100) {
+        elem.style.left = elem.style.top = tick + "px";
+        tick++;
+      }
+      else {
+        clearInterval(timer);
+        assert(tick == 100, "Tick accessed via a closure.");
+        assert(elem, "Elment also accessed via a closure.");
+        assert(timer, "Timer reference also obtained via a closure.");
+      }
+    },10);
+  }
+  animateIt('box');
+</script>
+```
+- 给事件处理程序绑定特定的上下文
+```html
+<button id="test">Click it!</button>
+<script type="text/javascript">
+  // bind()方法创建并返回一个匿名函数，可以强制将上下文设置为想要的任何对象
+  function bind(context,name){
+    return function(){
+        return context[name].apply(context,arguments);
+    };
+  }
+  var button = {
+    clicked: false;
+    click: function(){
+      this.clicked = true;
+      assert(button.clicked,"The button has been clicked.");
+      concole.log(this);
+    }
+  };
+  var elem = document.getElementById("test");
+  elem.addEventListener("click",bind(button,"click"),false);
+</script>
+```
+- 使用闭包实现缓存记忆
+```html
+<script type="text/javascript">
+Function.prototype.memorized = function(key) {
+    this._values = this._values || {};
+    return this._values[key] !== undefined ? this._values[key] : this._values[key] = this.apply(this, arguments);
+};
+Function.prototype.memorize = function() {
+    var fn = this;
+    // 通过变量赋值将上下文带到闭包中
+    return function() {
+        // 在缓存记忆函数中封装原始函数
+        return fn.memorized.apply(fn, arguments);
+    };
+};
+var isPrime = (function(num) {
+    var prime = num != 1;
+    for (var i = 2; i < num; i++) {
+        if (num % i == 0) {
+            prime = false;
+            break;
+        }
+    }
+    return prime;
+}).memorize();
+assert(isPrime(17), "17 is prime");
+</script>
+```
+- 利用即时函数处理迭代问题
+```html
+<div>DIV 0</div>
+<div>DIV 1</div>
+<script type="text/javascript">
+var div = document.getElementsByTagName("div");
+// 通过for循环内加入即时函数，将正确的值传递给即时函数，进而让处理程序得到正确的值
+for (var i = 0; i < div.length; i++)(function(n) {
+    div[n].addEventListener("click", function() {
+        assert("div #" + n + "was clicked.");
+    }, false);
+}
+})(i);
+</script>
+```
+
+**[返回目录](#目录)**
 ---

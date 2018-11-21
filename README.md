@@ -6,6 +6,7 @@
 2. **[函数](#2-函数)**
 3. **[函数续](#3-函数续)**
 4. **[闭包](#4-闭包)**
+5. **[原型与面向对象](#5-原型与面向对象)**
 ---
 ## 1. 调试
 - 用于所有现代浏览器的日志记录
@@ -613,4 +614,142 @@ for (var i = 0; i < div.length; i++)(function(n) {
 ```
 
 **[返回目录](#目录)**
+
+---
+## 5. 原型与面向对象
+- 使用原型方法创建一个新实例
+```html
+<script type="text/javascript">
+function Ninja() {}
+Ninja.prototype.swingSword = function() {
+    return true;
+};
+// 将函数作为构造器进行调用，不仅新对象实例被创建，函数原型上的方法也可以调用了
+var ninja = new Ninja();
+// 判断一个实例的类型以及其构造器
+assert(typeof ninja == "object", "The type of instance is object.");
+assert(ninja instanceof Ninja, "instanceof identifies the constructor.");
+assert(ninja.constructor == Ninja, "The ninja object was created by the Ninja function.");
+</script>
+```
+- 使用constructor实例化一个新对象
+```html
+<script type="text/javascript">
+  function Ninja(){}
+  var ninja = new Ninja();
+  var ninja2 = new ninja.constructor();
+  assert(ninja2 instanceof Ninja,"It's a ninja");
+  assert(ninja != ninja2,"But not the same Ninja");
+</script>
+```
+- 使用原型实现继承
+```html
+<script type="text/javascript">
+  function Person(){}
+  Person.prototype.dance = function(){};
+  function Ninja(){}
+  Ninja.prototype = new Person();
+  var ninja = new Ninja();
+  assert(ninja instanceof Ninja, "ninja receives functionality from Ninja prototype.");
+  assert(ninja instanceof Person, "...and Person prototype.");
+  assert(ninja instanceof Object, "...and Object prototype.");
+  assert(typeof ninja.dance == "function","...and can dance!");
+</script>
+```
+- forEach()兼容旧版本浏览器
+```html
+<script type="text/javascript">
+if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function(callback, context) {
+        for (var i = 0; i < this.length; i++) {
+            // 在每个数组条目上都调用callback方法 context||null表达式可防止将undefined传递给call()
+            callback.call(context || null, this[i], i, this);
+        }
+    };
+}
+["a", "b", "c"].forEach(function(value, index, array) {
+    assert(value, "Is in position" + index + " out of " + (array.length - 1));
+});
+</script>
+```
+- 通过HTMLElement的原型给所有html元素添加方法
+```html
+<div id="parent">
+    <div id="a">To be removed</div>
+    <div id="b">Me too!</div>
+</div>
+<script type="text/javascript">
+HTMLElement.prototype.remove = function() {
+    if (this.parentNode) {
+        this.parentNode.removeChild(this);
+    }
+};
+// 用原生方法删除元素a
+var a = document.getElementById("a");
+a.parentNode.removeChild(a);
+// 用新方法删除元素b
+document.getElementById("b").remove();
+assert(!document.getElementById("a"), "a is gone");
+assert(!document.getElementById("b"), "b is gone too");
+</script>
+```
+- 使用hasOwnProperty()方法解决原型对象拓展问题
+```html
+<script type="text/javascript">
+Object.prototype.keys = function() {
+    var keys = [];
+    for (var i in ths)
+        // 忽略掉非实例对象的属性
+        if (this.hasOwnProperty(i)) keys.push(i);
+    return keys;
+};
+var obj = { a: 1, b: 2, c: 3 };
+assert(obj.keys().length == 3, "There are three properties in this object.");
+</script>
+```
+- 模拟Array，而不是扩展成子类,可兼容所有浏览器
+```html
+<script type="text/javascript">
+// 创建一个含有原型属性length的新类
+function MyArray() {}
+MyArray.prototype.length = 0;
+// 使用即时函数，用apply()将Array中选中方法复制到新类上
+(function() {
+    var methods = ['push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'join'];
+    for (var i = 0; i < methods.lenth; i++)(function name) {
+        MyArray.prototype[name] = function() {
+            return Array.prototype[name].apply(this, arguments);
+        };
+    }(methods[i]);
+})();
+var mine = new MyArray();
+mine.push(1, 2, 3);
+assert(mine.length == 3,"All the items are on our sub-classed array.");
+assert(!(mine instanceof Array),"We aren't subclassing Array,though.");
+</script>
+```
+- 经典继承语法示例
+```html
+<script type="text/javascript">
+  var Person = Object.subClass() {
+      init: function() { this.dancing = isDancing; },
+      dance: function() { return this.dancing; }
+  };
+  var Ninja = Person.subClass() {
+      init: function() { this._super(false); },
+      dance: function() { return this._super(); },
+      swingSword: function() { return true; }
+  };
+var person = new Person(true);
+assert(person.dance(),"The person is dancing");
+var ninja = new Ninja();
+assert(ninja.swingSword(),"The sword is swinging");
+assert(!ninja.dance(),"The ninja is not dancing");
+assert(person instanceof Person,"person is a Person");
+assert(ninja instanceof Ninja && ninja instanceof Person,"ninja is a Ninja and a Person");
+</script>
+```
+
+**[返回目录](#目录)**
+
 ---

@@ -7,6 +7,7 @@
 3. **[函数续](#3-函数续)**
 4. **[闭包](#4-闭包)**
 5. **[原型与面向对象](#5-原型与面向对象)**
+6. **[正则表达式](#6-正则表达式)**
 ---
 ## 1. 调试
 - 用于所有现代浏览器的日志记录
@@ -747,6 +748,49 @@ assert(ninja.swingSword(),"The sword is swinging");
 assert(!ninja.dance(),"The ninja is not dancing");
 assert(person instanceof Person,"person is a Person");
 assert(ninja instanceof Ninja && ninja instanceof Person,"ninja is a Ninja and a Person");
+</script>
+```
+
+**[返回目录](#目录)**
+
+---
+## 6. 正则表达式
+- 将横线字符串转换为驼峰拼写法
+```html
+<script type="text/javascript">
+  function upper(all,letter){
+    return letter.toUpperCase();
+  }
+  assert("border-bottom-width".replace(/-(\w)/g,upper) == "borderBottomWidth","Camel cased a hyphenated string.");
+</script>
+```
+- 从字符串中剔除空格
+```html
+<script type="text/javascript">
+function trim(str){
+  return (str || " ").replace(/^\s+|\s+$/g," ");
+}
+assert(trim(" #id div.class ") == "#id div.class","Extra whitespace trimmed from a selector string.");
+</script>
+```
+在更长的文档字符串中，采用字符串的slice方法剔除字符串尾部空格，性能更好
+```html
+<script type="text/javascript">
+  function trim(str){
+    var str=str.replace(/^\s\s*/, ' '),
+    ws=/\s/,
+    i=str.length;
+    while(ws.test(str.charAt(--i)));
+    return str.slice(0,i+1);
+  }
+  assert(trim(" #id div.class ") == "#id div.class","Extra whitespace trimmed from a selector string.");
+</script>
+```
+- 使用空白符匹配所有字符，包括换行符
+```html
+<script type="text/javascript">
+  var html = "<b>Hello</b>\n<i>word!</i>";
+  assert(/[\S\s]*/.exec(html)[0]==="<b>Hello</b>\n<i>word!</i>","Matching everything with a character set.");
 </script>
 ```
 
